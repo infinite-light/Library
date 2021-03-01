@@ -1,8 +1,9 @@
 from django.shortcuts import render
-
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 # Create your views here.
 from catalog.models import Book, Author, BookInstance, Genre
-
+@login_required
 def index(request):
     """View function for home page of site."""
 
@@ -20,6 +21,11 @@ def index(request):
 
     # The 'all()' is implied by default.
     num_authors = Author.objects.count()
+    gen_dtl =""
+    for x in Genre.objects.all() :
+        gencount= Book.objects.filter(genre=x.id).count()
+        gen_dtl  = gen_dtl + x.name + " (" + str(gencount) +"), "
+    
 
     context = {
         'num_books': num_books,
@@ -28,6 +34,7 @@ def index(request):
         'num_authors': num_authors,
         'num_genres': num_genres,
         'num_visits': num_visits,
+        'gen_dtl' : gen_dtl,
     }
 
     # Render the HTML template index.html with the data in the context variable
@@ -35,7 +42,7 @@ def index(request):
 
 from django.views import generic
 
-class BookListView(generic.ListView):
+class BookListView(LoginRequiredMixin, generic.ListView):
     model = Book
     paginate_by = 2
     
@@ -46,7 +53,7 @@ class BookListView(generic.ListView):
         context['some_data'] = 'This is just some data'
         return context    
     
-class BookDetailView(generic.DetailView):
+class BookDetailView(LoginRequiredMixin, generic.DetailView):
     model = Book
     def book_detail_view(request, primary_key):
         try:
@@ -55,7 +62,7 @@ class BookDetailView(generic.DetailView):
             raise Http404('Book does not exist')
         return render(request, 'catalog/book_detail.html', context={'book': book})
 
-class AuthorListView(generic.ListView):
+class AuthorListView(LoginRequiredMixin, generic.ListView):
     model = Author
 
     paginate_by = 10
@@ -67,7 +74,7 @@ class AuthorListView(generic.ListView):
         context['some_data'] = 'This is just some data'
         return context    
     
-class AuthorDetailView(generic.DetailView):
+class AuthorDetailView(LoginRequiredMixin, generic.DetailView):
     model = Author
     def Author_detail_view(request, primary_key):
         try:
@@ -76,7 +83,7 @@ class AuthorDetailView(generic.DetailView):
             raise Http404('Book does not exist')
         return render(request, 'catalog/author_detail.html', context={'author': author})
 
-from django.contrib.auth.mixins import LoginRequiredMixin
+
 
 class LoanedBooksByUserListView(LoginRequiredMixin,generic.ListView):
     """Generic class-based view listing books on loan to current user."""
@@ -87,9 +94,18 @@ class LoanedBooksByUserListView(LoginRequiredMixin,generic.ListView):
     def get_queryset(self):
         return BookInstance.objects.filter(borrower=self.request.user).filter(status__exact='o').order_by('due_back')
 
+class LoanedBooksListView(LoginRequiredMixin,generic.ListView):
+    
+    model = BookInstance
+    template_name ='catalog/bookinstance_list_borrowed.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return BookInstance.objects.filter(status__exact='o').order_by('due_back')
+
 import datetime
 
-from django.contrib.auth.decorators import login_required, permission_required
+
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -115,8 +131,8 @@ def renew_book_librarian(request, pk):
             book_instance.save()
 
             # redirect to a new URL:
-            #return HttpResponseRedirect(reverse('all-borrowed') )
-            return HttpResponseRedirect(reverse('index') )
+            return HttpResponseRedirect(reverse('all-borrowed') )
+            #return HttpResponseRedirect(reverse('index') )
 
     # If this is a GET (or any other method) create the default form.
     else:
@@ -147,3 +163,5 @@ class AuthorUpdate(UpdateView):
 class AuthorDelete(DeleteView):
     model = Author
     success_url = reverse_lazy('authors')
+    
+        

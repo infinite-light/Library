@@ -6,9 +6,15 @@
   <ul>
     {% for author in author_list %}
       <li>
-        <a href="{{ author.get_absolute_url }}">{{ author.last_name }},{{ author.first_name }}</a> ({{author.date_of_birth}} - {{author.date_of_death}} )
+        <a href="{{ author.get_absolute_url }}">{{ author.last_name }},{{ author.first_name }}</a> ({{author.date_of_birth}} - {{author.date_of_death}} ) 
+        {% if user.is_staff %}
+        <a href="{% url 'author-update' author.pk %}">update</a>
+        <a href="{% url 'author-delete' author.pk %}">Delete</a>
+        {% endif %} 
       </li>
     {% endfor %}
+    {% if user.is_staff %}<li><a href="{% url 'author-create' %}">Add new Author</a></li>{% endif %}
+
   </ul>
   {% else %}
     <p>There are no author to list.</p>
