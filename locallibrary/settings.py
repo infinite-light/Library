@@ -21,12 +21,18 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = '+)@mbhdtj!35k0qi_g99k3!%=v#61qy!43$*w&*)(n-9@2dy8c'
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpkag')
-
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '+)@mbhdtj!35k0qi_g99k3!%=v#61qy!43$*w&*)(n-9@2dy8c')
+# before deployment we must set these items
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
-DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
-ALLOWED_HOSTS = []
+#DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
+DEBUG=False
+ALLOWED_HOSTS = ["127.0.0.1"]
+CSRF_COOKIE_SECURE=True
+SESSION_COOKIE_SECURE=True
+SECURE_SSL_REDIRECT=False # make it true at the time of deployment otherwise site will be available to both ssl and non-ssl connections.
+
+
 
 
 # Application definition
